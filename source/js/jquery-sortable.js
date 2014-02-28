@@ -233,12 +233,26 @@
   }
 
   ContainerGroup.prototype = {
-    dragInit: function  (e, itemContainer) {
+    dragInit: function  (e, itemContainer) {sd
       this.$document = $(itemContainer.el[0].ownerDocument)
 
       // get item to drag
       this.item = $(e.target).closest(this.options.itemSelector)
       this.itemContainer = itemContainer
+
+      // find if the target has any parent elements that might be scrollable
+      this.$scrollParents = $(e.target).parents().filter(function() {
+        var $parent = $(this),
+        styles = ['overflow', 'overflow-x', 'overflow-y'],
+        isScrollable = false
+        $.each(styles, function(i, style) {
+          var scrollStyle = $parent.css(style)
+          isScrollable = isScrollable ||
+            scrollStyle === 'scroll' ||
+            scrollStyle === 'auto'
+        })
+        return isScrollable
+      })
 
       if(this.item.is(this.options.exclude) ||
          !this.options.onMousedown(this.item, groupDefaults.onMousedown, e)){
@@ -417,6 +431,8 @@
       $.each(events,function  (i,event) {
         that.$document[method](eventNames[event], that[event + 'Proxy'])
       })
+
+      that.$scrollParents[method](eventNames.scroll, that.scrollProxy)
     },
     clearOffsetParent: function () {
       this.offsetParent = undefined
