@@ -417,7 +417,6 @@
     distanceMet: function (e) {
       var currentPointer = this.getPointer(e)
       return (Math.max(
-<<<<<<< HEAD
         Math.abs(this.pointer.left - currentPointer.left),
         Math.abs(this.pointer.top - currentPointer.top)
       ) >= this.options.distance)
@@ -427,11 +426,6 @@
         left: e.pageX || e.originalEvent.pageX,
         top: e.pageY || e.originalEvent.pageY
       }
-=======
-        Math.abs(this.pointer.left - e.pageX),
-        Math.abs(this.pointer.top - e.pageY)
-      ) >= this.options.distance)
->>>>>>> implemented more comprehensive DOM transversal solution with group option
     },
     setupDelayTimer: function () {
       var that = this
