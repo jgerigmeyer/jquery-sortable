@@ -118,6 +118,11 @@
     // If true, the position of the placeholder is calculated on every mousemove.
     // If false, it is only calculated when the mouse is above a container.
     pullPlaceholder: true,
+    // If true, the plugin will find any parents elements of items in the group
+    // during dragInit and listen for scroll events on these elements. It can
+    // take a few milliseconds to find the elements, so it is advised to leave
+    // this option false unless you need it.
+    scrollParent: false,
     // Specifies serialization of the container group.
     // The pair $parent/$children is either container/items or item/subcontainers.
     serialize: function ($parent, $children, parentIsContainer) {
@@ -239,12 +244,12 @@
   }
 
   ContainerGroup.prototype = {
-    dragInit: function  (e, itemContainer) {
+    dragInit: function  (e, itemContainer) {sd
       this.$document = $(itemContainer.el[0].ownerDocument)
-
-      // get item to drag
       this.item = $(e.target).closest(this.options.itemSelector)
       this.itemContainer = itemContainer
+
+      this.$scrollParents = this.options.scrollParent ? this.getScrollParents() : $([])
 
       if(this.item.is(this.options.exclude) ||
          !this.options.onMousedown(this.item, groupDefaults.onMousedown, e)){
@@ -306,6 +311,34 @@
         this.lastAppendedItem = this.sameResultBox = undefined
         this.dragging = false
       }
+    },
+    getScrollParents: function  () {
+      var $scrollParents = $([]),
+      scrollStyles = ['overflow', 'overflow-x', 'overflow-y']
+
+      $.each(this.containers, function(i, container) {
+        container.items || container.findItems()
+
+        // look at parents of each item for scrollable css
+        $.each(container.items, function(i, item) {
+          var $nextEl = $(item).parent()
+          while(!$nextEl.hasClass('jquery-sortable-visited') && $nextEl[0].tagName){
+            $.each(scrollStyles, function(i, style) {
+              var value = $nextEl.css(style)
+              if(value === 'scroll' || value === 'auto'){
+                $scrollParents = $scrollParents.add($nextEl)
+              }
+            })
+            $nextEl.addClass('jquery-sortable-visited')
+            $nextEl = $nextEl.parent()
+          }
+        })
+      })
+
+      // clean up the breadcrumbs
+      $('.jquery-sortable-visited').removeClass('jquery-sortable-visited')
+
+      return $scrollParents
     },
     searchValidTarget: function  (pointer, lastPointer) {
       if(!pointer){
@@ -426,6 +459,8 @@
       $.each(events,function  (i,event) {
         that.$document[method](eventNames[event], that[event + 'Proxy'])
       })
+
+      that.$scrollParents[method](eventNames.scroll, that.scrollProxy)
     },
     clearOffsetParent: function () {
       this.offsetParent = undefined
@@ -544,11 +579,14 @@
         sameResultBox = emptyBox
       this.rootGroup.movePlaceholder(this, item, method, sameResultBox)
     },
+    findItems: function  () {
+      this.items = this.$getChildren(this.el, "item").filter(
+        ":not(." + this.group.options.placeholderClass + ", ." + this.group.options.draggedClass + ")"
+      ).get()
+    },
     getItemDimensions: function  () {
       if(!this.itemDimensions){
-        this.items = this.$getChildren(this.el, "item").filter(
-          ":not(." + this.group.options.placeholderClass + ", ." + this.group.options.draggedClass + ")"
-        ).get()
+        this.findItems()
         setDimensions(this.items, this.itemDimensions = [], this.options.tolerance)
       }
       return this.itemDimensions
