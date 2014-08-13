@@ -244,7 +244,7 @@
   }
 
   ContainerGroup.prototype = {
-    dragInit: function  (e, itemContainer) {sd
+    dragInit: function  (e, itemContainer) {
       this.$document = $(itemContainer.el[0].ownerDocument)
       this.item = $(e.target).closest(this.options.itemSelector)
       this.itemContainer = itemContainer
