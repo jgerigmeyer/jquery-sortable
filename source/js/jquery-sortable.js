@@ -279,8 +279,10 @@
                           groupDefaults.onDrag,
                           e)
 
-      var x = e.pageX || e.originalEvent.pageX || e.originalEvent.touches[0].pageX,
-      y = e.pageY || e.originalEvent.pageY || e.originalEvent.touches[0].pageY,
+      var touchX = e.originalEvent.touches ? e.originalEvent.touches[0].pageX : undefined
+      var touchY = e.originalEvent.touches ? e.originalEvent.touches[0].pageY : undefined
+      var x = e.pageX || e.originalEvent.pageX || touchX,
+      y = e.pageY || e.originalEvent.pageY || touchY,
       box = this.sameResultBox,
       t = this.options.tolerance
 
@@ -431,9 +433,11 @@
       ) >= this.options.distance)
     },
     getPointer: function(e) {
+      var touchX = e.originalEvent.touches ? e.originalEvent.touches[0].pageX : undefined
+      var touchY = e.originalEvent.touches ? e.originalEvent.touches[0].pageY : undefined
       return {
-        left: e.pageX || e.originalEvent.pageX || e.originalEvent.touches[0].pageX,
-        top: e.pageY || e.originalEvent.pageY || e.originalEvent.touches[0].pageY
+        left: e.pageX || e.originalEvent.pageX || touchX,
+        top: e.pageY || e.originalEvent.pageY || touchY
       }
     },
     setupDelayTimer: function () {
